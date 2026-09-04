@@ -7,6 +7,7 @@ import com.baymakov.taskmanager.repository.TaskRepository;
 import com.baymakov.taskmanager.service.dto.TaskRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
