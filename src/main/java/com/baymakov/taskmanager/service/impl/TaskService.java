@@ -3,6 +3,7 @@ package com.baymakov.taskmanager.service.impl;
 import com.baymakov.taskmanager.entity.Task;
 import com.baymakov.taskmanager.entity.TaskStatus;
 import com.baymakov.taskmanager.entity.User;
+import com.baymakov.taskmanager.exception.TaskNotFoundException;
 import com.baymakov.taskmanager.repository.TaskRepository;
 import com.baymakov.taskmanager.service.dto.TaskRequest;
 import lombok.RequiredArgsConstructor;

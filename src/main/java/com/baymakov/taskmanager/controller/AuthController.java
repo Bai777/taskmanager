@@ -3,6 +3,7 @@ package com.baymakov.taskmanager.controller;
 import com.baymakov.taskmanager.entity.User;
 import com.baymakov.taskmanager.security.JwtService;
 import com.baymakov.taskmanager.service.dto.AuthRequest;
+import com.baymakov.taskmanager.service.dto.JwtResponse;
 import com.baymakov.taskmanager.service.dto.RegisterRequest;
 import com.baymakov.taskmanager.service.dto.UserResponse;
 import com.baymakov.taskmanager.service.impl.UserService;

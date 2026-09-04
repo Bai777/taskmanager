@@ -37,6 +37,3 @@ public class Task {
     private User user;
 }
 
-public enum TaskStatus {
-    PENDING, IN_PROGRESS, COMPLETED, CANCELLED
-}

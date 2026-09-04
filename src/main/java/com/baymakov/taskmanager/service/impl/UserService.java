@@ -2,6 +2,9 @@ package com.baymakov.taskmanager.service.impl;
 
 import com.baymakov.taskmanager.entity.Role;
 import com.baymakov.taskmanager.entity.User;
+import com.baymakov.taskmanager.exception.EmailAlreadyExistsException;
+import com.baymakov.taskmanager.exception.UserNotFoundException;
+import com.baymakov.taskmanager.exception.UsernameAlreadyExistsException;
 import com.baymakov.taskmanager.repository.UserRepository;
 import com.baymakov.taskmanager.service.dto.RegisterRequest;
 import lombok.RequiredArgsConstructor;
