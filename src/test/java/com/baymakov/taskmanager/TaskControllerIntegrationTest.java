@@ -51,9 +51,7 @@ public class TaskControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Удаляем всех пользователей перед каждым тестом (для чистоты)
         userRepository.deleteAll();
-
         User user = User.builder()
                 .username("user")
                 .email("user@test.com")
@@ -61,6 +59,11 @@ public class TaskControllerIntegrationTest {
                 .role(Role.USER)
                 .build();
         userRepository.save(user);
+        userRepository.flush();
+
+        if (userRepository.findByUsername("user").isEmpty()) {
+            throw new RuntimeException("Test user not saved!");
+        }
     }
 
     @Test
