@@ -1,10 +1,15 @@
 package com.baymakov.taskmanager;
 
+import com.baymakov.taskmanager.entity.Role;
+import com.baymakov.taskmanager.entity.User;
+import com.baymakov.taskmanager.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -31,11 +36,31 @@ public class TaskControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @BeforeEach
+    void setUp() {
+        // Удаляем всех пользователей перед каждым тестом (для чистоты)
+        userRepository.deleteAll();
+
+        User user = User.builder()
+                .username("user")
+                .email("user@test.com")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.USER)
+                .build();
+        userRepository.save(user);
     }
 
     @Test
