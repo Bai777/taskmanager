@@ -18,7 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,5 +75,89 @@ public class TaskControllerIntegrationTest {
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Test"));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void shouldUpdateTask() throws Exception {
+        String createJson = "{\"title\":\"Original\",\"deadline\":\"2027-01-01T00:00:00\"}";
+        String response = mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long taskId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(response).get("id").asLong();
+
+        String updateJson = "{\"title\":\"Updated\",\"deadline\":\"2027-02-01T00:00:00\",\"status\":\"IN_PROGRESS\"}";
+        mockMvc.perform(put("/api/tasks/" + taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated"))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void shouldSoftDeleteTask() throws Exception {
+        String createJson = "{\"title\":\"ToDelete\",\"deadline\":\"2027-01-01T00:00:00\"}";
+        String response = mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long taskId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(response).get("id").asLong();
+
+        mockMvc.perform(delete("/api/tasks/" + taskId))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/tasks/" + taskId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void shouldGetTaskById() throws Exception {
+        String createJson = "{\"title\":\"GetMe\",\"deadline\":\"2027-01-01T00:00:00\"}";
+        String response = mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long taskId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(response).get("id").asLong();
+
+        mockMvc.perform(get("/api/tasks/" + taskId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("GetMe"));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void shouldFilterTasksByStatusAndDates() throws Exception {
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Pending1\",\"deadline\":\"2026-01-01T00:00:00\",\"status\":\"PENDING\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Completed1\",\"deadline\":\"2026-02-01T00:00:00\",\"status\":\"COMPLETED\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/tasks?status=PENDING"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+
+        mockMvc.perform(get("/api/tasks?from=2026-01-01T00:00:00&to=2026-01-31T23:59:59"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Pending1"));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void shouldNotAccessOtherUsersTask() throws Exception {
+
     }
 }
