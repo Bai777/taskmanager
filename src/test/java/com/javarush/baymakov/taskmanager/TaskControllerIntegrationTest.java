@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -18,6 +21,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,18 +58,22 @@ public class TaskControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        User user = User.builder()
+        User user1 = User.builder()
                 .username("user")
                 .email("user@test.com")
                 .password(passwordEncoder.encode("password"))
                 .role(Role.USER)
                 .build();
-        userRepository.save(user);
-        userRepository.flush();
+        userRepository.save(user1);
 
-        if (userRepository.findByUsername("user").isEmpty()) {
-            throw new RuntimeException("Test user not saved!");
-        }
+        User user2 = User.builder()
+                .username("user2")
+                .email("user2@test.com")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.USER)
+                .build();
+        userRepository.save(user2);
+        userRepository.flush();
     }
 
     @Test
@@ -153,5 +163,31 @@ public class TaskControllerIntegrationTest {
         mockMvc.perform(get("/api/tasks?from=2027-01-01T00:00:00&to=2027-01-31T23:59:59"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Pending1"));
+    }
+
+    @Test
+    void shouldNotAccessOtherUsersTask() throws Exception {
+        Authentication userAuth = new UsernamePasswordAuthenticationToken(
+                "user", "password", List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+        String createJson = "{\"title\":\"User1Task\",\"deadline\":\"2027-01-01T00:00:00\"}";
+        String response = mockMvc.perform(post("/api/tasks")
+                        .with(authentication(userAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Long taskId = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(response).get("id").asLong();
+
+        Authentication user2Auth = new UsernamePasswordAuthenticationToken(
+                "user2", "password", List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+        mockMvc.perform(get("/api/tasks/" + taskId)
+                        .with(authentication(user2Auth)))
+                .andExpect(status().isForbidden());
     }
 }
