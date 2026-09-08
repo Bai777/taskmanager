@@ -139,25 +139,19 @@ public class TaskControllerIntegrationTest {
     void shouldFilterTasksByStatusAndDates() throws Exception {
         mockMvc.perform(post("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Pending1\",\"deadline\":\"2026-01-01T00:00:00\",\"status\":\"PENDING\"}"))
+                        .content("{\"title\":\"Pending1\",\"deadline\":\"2027-01-01T00:00:00\",\"status\":\"PENDING\"}"))
                 .andExpect(status().isCreated());
         mockMvc.perform(post("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Completed1\",\"deadline\":\"2026-02-01T00:00:00\",\"status\":\"COMPLETED\"}"))
+                        .content("{\"title\":\"Completed1\",\"deadline\":\"2027-02-01T00:00:00\",\"status\":\"COMPLETED\"}"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/tasks?status=PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("PENDING"));
 
-        mockMvc.perform(get("/api/tasks?from=2026-01-01T00:00:00&to=2026-01-31T23:59:59"))
+        mockMvc.perform(get("/api/tasks?from=2027-01-01T00:00:00&to=2027-01-31T23:59:59"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Pending1"));
-    }
-
-    @Test
-    @WithMockUser(username = "user", roles = "USER")
-    void shouldNotAccessOtherUsersTask() throws Exception {
-
     }
 }
