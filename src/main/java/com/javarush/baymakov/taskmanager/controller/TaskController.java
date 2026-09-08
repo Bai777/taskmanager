@@ -35,6 +35,7 @@ public class TaskController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             Authentication authentication) {
+        log.info("Get tasks for status: {}, from: {}, to: {}", status, from, to);
         String username = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -45,6 +46,7 @@ public class TaskController {
     @Operation(summary = "Получить задачу по id")
     @GetMapping("/{id}")
     public TaskResponse getTask(@PathVariable Long id, Authentication authentication) {
+        log.info("Get task by id: {} for user: {}", id, authentication.getName());
         String username = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -56,6 +58,7 @@ public class TaskController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse createTask(@Valid @RequestBody TaskRequest request, Authentication authentication) {
+        log.info("Create task for user: {}", authentication.getName());
         Task task = taskService.createTask(request, authentication.getName());
         return TaskResponse.from(task);
     }
@@ -64,6 +67,7 @@ public class TaskController {
     @PutMapping("/{id}")
     public TaskResponse updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request,
                                    Authentication authentication) {
+        log.info("Update task id: {} for user: {}", id, authentication.getName());
         String username = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -75,6 +79,7 @@ public class TaskController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(@PathVariable Long id, Authentication authentication) {
+        log.info("Delete (soft) task id: {} for user: {}", id, authentication.getName());
         String username = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -85,6 +90,7 @@ public class TaskController {
     @PatchMapping("/{id}/restore")
     @ResponseStatus(HttpStatus.OK)
     public void restoreTask(@PathVariable Long id, Authentication authentication) {
+        log.info("Restore (soft) task id: {} for user: {}", id, authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (!isAdmin) {
