@@ -5,6 +5,8 @@ import com.javarush.baymakov.taskmanager.entity.TaskStatus;
 import com.javarush.baymakov.taskmanager.service.dto.TaskRequest;
 import com.javarush.baymakov.taskmanager.service.dto.TaskResponse;
 import com.javarush.baymakov.taskmanager.service.impl.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Tasks", description = "Управление задачами")
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 public class TaskController {
     private final TaskService taskService;
 
+    @Operation(summary = "Получить все задачи")
     @GetMapping
     public List<TaskResponse> getTasks(
             @RequestParam(required = false) TaskStatus status,
@@ -38,6 +42,7 @@ public class TaskController {
         return tasks.stream().map(TaskResponse::from).collect(Collectors.toList());
     }
 
+    @Operation(summary = "Получить задачу по id")
     @GetMapping("/{id}")
     public TaskResponse getTask(@PathVariable Long id, Authentication authentication) {
         String username = authentication.getName();
@@ -47,6 +52,7 @@ public class TaskController {
         return TaskResponse.from(task);
     }
 
+    @Operation(summary = "Создать задачу")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse createTask(@Valid @RequestBody TaskRequest request, Authentication authentication) {
@@ -54,6 +60,7 @@ public class TaskController {
         return TaskResponse.from(task);
     }
 
+    @Operation(summary = "Обновить задачу по id")
     @PutMapping("/{id}")
     public TaskResponse updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request,
                                    Authentication authentication) {
@@ -64,6 +71,7 @@ public class TaskController {
         return TaskResponse.from(task);
     }
 
+    @Operation(summary = "Удалить задачу по id")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(@PathVariable Long id, Authentication authentication) {
@@ -73,6 +81,7 @@ public class TaskController {
         taskService.deleteTask(id, username, isAdmin);
     }
 
+    @Operation(summary = "Восстановить задачу по id")
     @PatchMapping("/{id}/restore")
     @ResponseStatus(HttpStatus.OK)
     public void restoreTask(@PathVariable Long id, Authentication authentication) {
