@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taskmanager
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database_taskmanager
       SPRING_DATASOURCE_USERNAME: ${USER:postgres}
       SPRING_DATASOURCE_PASSWORD: ${PASSWORD:admin}
       JWT_SECRET: mySecretKey1234567890123456789012345678901234567890
