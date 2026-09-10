@@ -97,8 +97,29 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
         if (!isAdmin && !task.getUser().getUsername().equals(username)) {
+            log.warn("Access denied for user {} to task {}", username, taskId);
             throw new AccessDeniedException("You do not have permission to access this task");
         }
         return task;
+    }
+
+    public List<Task> getAllTasksForUserByAdmin(Long userId) {
+        log.info("Admin fetching all tasks for user id: {} (including deleted)", userId);
+        return taskRepository.findByUserId(userId);
+    }
+
+    public List<Task> getAllTasksForAdmin() {
+        log.info("Admin fetching all tasks (including deleted)");
+        return taskRepository.findAll();
+    }
+
+    public List<Task> getTasksByUserIdAndStatusAdmin(Long userId, TaskStatus status) {
+        log.info("Admin fetching tasks for user {} with status {} (including deleted)", userId, status);
+        return taskRepository.findByUserIdAndStatus(userId, status);
+    }
+
+    public List<Task> getTasksByUserIdAndDeadlineBetweenAdmin(Long userId, LocalDateTime from, LocalDateTime to) {
+        log.info("Admin fetching tasks for user {} between {} and {} (including deleted)", userId, from, to);
+        return taskRepository.findByUserIdAndDeadlineBetween(userId, from, to);
     }
 }

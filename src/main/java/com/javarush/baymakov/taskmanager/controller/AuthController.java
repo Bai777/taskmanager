@@ -7,6 +7,8 @@ import com.javarush.baymakov.taskmanager.service.dto.JwtResponse;
 import com.javarush.baymakov.taskmanager.service.dto.RegisterRequest;
 import com.javarush.baymakov.taskmanager.service.dto.UserResponse;
 import com.javarush.baymakov.taskmanager.service.impl.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Authentication", description = "Регистрация и аутентификация")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    @Operation(summary = "Регистрация нового пользователя")
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Register new user: {}", request.username());
@@ -37,6 +41,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(user));
     }
 
+    @Operation(summary = "Аутентификация (логин) – получение JWT токена")
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
         log.info("Login attempt for user: {}", request.username());
