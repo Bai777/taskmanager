@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.javarush.baymakov.taskmanager.util.SecurityUtils.isAdmin;
+
 @Tag(name = "Tasks", description = "Управление задачами")
 @RestController
 @RequestMapping("/api/tasks")
@@ -36,8 +38,6 @@ public class TaskController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             Authentication authentication) {
         String username = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         log.info("Get tasks for user: {}, status: {}, from: {}, to: {}", username, status, from, to);
         List<Task> tasks = taskService.getTasksForUser(username, status, from, to);
         return tasks.stream().map(TaskResponse::from).collect(Collectors.toList());
@@ -47,10 +47,8 @@ public class TaskController {
     @GetMapping("/{id}")
     public TaskResponse getTask(@PathVariable Long id, Authentication authentication) {
         String username = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         log.info("Get task by id: {} for user: {}", id, username);
-        Task task = taskService.getTask(id, username, isAdmin);
+        Task task = taskService.getTask(id, username, isAdmin(authentication));
         return TaskResponse.from(task);
     }
 
@@ -68,10 +66,8 @@ public class TaskController {
     public TaskResponse updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request,
                                    Authentication authentication) {
         String username = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         log.info("Update task id: {} for user: {}", id, username);
-        Task task = taskService.updateTask(id, request, username, isAdmin);
+        Task task = taskService.updateTask(id, request, username, isAdmin(authentication));
         return TaskResponse.from(task);
     }
 
@@ -80,19 +76,15 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(@PathVariable Long id, Authentication authentication) {
         String username = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         log.info("Delete (soft) task id: {} for user: {}", id, username);
-        taskService.deleteTask(id, username, isAdmin);
+        taskService.deleteTask(id, username, isAdmin(authentication));
     }
 
     @Operation(summary = "Восстановить задачу (только ADMIN)")
     @PatchMapping("/{id}/restore")
     @ResponseStatus(HttpStatus.OK)
     public void restoreTask(@PathVariable Long id, Authentication authentication) {
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (!isAdmin) {
+        if (!isAdmin(authentication)) {
             throw new AccessDeniedException("Only admin can restore tasks");
         }
         log.info("Restore task id: {} by admin", id);
